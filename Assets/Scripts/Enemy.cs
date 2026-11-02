@@ -1,11 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-/// <summary>
-/// IA enemiga con NavMesh. Estados: Patrullaje (waypoints) → Persecución → Búsqueda → Patrullaje.
-/// Ve al jugador con un cono de visión (Vector3.Angle) + Raycast para no ver a través de paredes.
-/// Si suena la alarma del GameManager, ignora la visión y persigue al jugador sin parar.
-/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : MonoBehaviour
 {
@@ -13,7 +8,7 @@ public class Enemy : MonoBehaviour
 
     [Header("Referencias")]
     [SerializeField] private Player player;
-    [SerializeField] private Animator animator;            // Opcional. Necesita un parámetro float "Speed"
+    [SerializeField] private Animator animator;            
 
     [Header("Patrullaje")]
     [SerializeField] private Transform[] waypoints;
@@ -22,12 +17,12 @@ public class Enemy : MonoBehaviour
 
     [Header("Visión")]
     [SerializeField] private float viewDistance = 12f;
-    [SerializeField, Range(10f, 360f)] private float viewAngle = 100f;   // Ángulo total del cono
-    [SerializeField] private float eyeHeight = 1.6f;                     // Debe quedar DENTRO del collider del enemigo
-    [SerializeField] private float targetHeight = 0.6f;                  // Punto del jugador al que apunta el rayo
-    [SerializeField] private float closeDetectionRadius = 1.5f;          // Te siente aunque estés a su espalda
-    [SerializeField] private float crouchVisibility = 0.6f;              // Agachado te ve de más cerca
-    [SerializeField] private LayerMask visionMask = ~0;                  // Paredes + jugador
+    [SerializeField, Range(10f, 360f)] private float viewAngle = 100f;   
+    [SerializeField] private float eyeHeight = 1.6f;                     
+    [SerializeField] private float targetHeight = 0.6f;                  
+    [SerializeField] private float closeDetectionRadius = 1.5f;          
+    [SerializeField] private float crouchVisibility = 0.6f;              
+    [SerializeField] private LayerMask visionMask = ~0;                  
     [SerializeField] private float visionCheckInterval = 0.1f;
 
     [Header("Persecución")]
@@ -41,10 +36,12 @@ public class Enemy : MonoBehaviour
     [Header("Búsqueda")]
     [SerializeField] private float searchSpeed = 3f;
     [SerializeField] private float searchDuration = 5f;
-    [SerializeField] private float searchTurnSpeed = 90f;                // Grados/seg mirando alrededor
+    [SerializeField] private float searchTurnSpeed = 90f;                
 
     private static readonly int SpeedParam = Animator.StringToHash("Speed");
-
+    private static readonly int JumpAttackParam = Animator.StringToHash("JumpAttack");
+    private static readonly int Attack2Param = Animator.StringToHash("Attack2");
+    private int attackCount = 0;
     private NavMeshAgent agent;
     private State state = State.Patrol;
     private bool alarmed;
@@ -67,7 +64,7 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (player == null) player = FindFirstObjectByType<Player>(); // Unity 2022: FindObjectOfType
+        if (player == null) player = FindFirstObjectByType<Player>(); 
         if (animator == null) animator = GetComponentInChildren<Animator>();
     }
 
@@ -91,7 +88,7 @@ public class Enemy : MonoBehaviour
     {
         if (player == null) return;
 
-        if (player.IsDead) // Ya te atrapó: se queda quieto
+        if (player.IsDead) 
         {
             agent.isStopped = true;
             UpdateAnimation();
@@ -121,7 +118,7 @@ public class Enemy : MonoBehaviour
     #region Visión
     private void UpdateVision()
     {
-        if (alarmed) { canSeePlayer = true; return; } // Con la alarma sabe dónde estás
+        if (alarmed) { canSeePlayer = true; return; } 
 
         visionTimer -= Time.deltaTime;
         if (visionTimer > 0f) return;
@@ -138,21 +135,20 @@ public class Enemy : MonoBehaviour
         float distance = toTarget.magnitude;
         if (distance < 0.01f) return true;
 
-        // 1) ¿Está muy cerca? Lo detecta sin importar el ángulo
+        
         bool isClose = distance <= closeDetectionRadius;
 
         if (!isClose)
         {
-            // 2) Distancia (el jugador agachado es más difícil de ver)
+            
             float range = viewDistance * (player.IsCrouching ? crouchVisibility : 1f);
             if (distance > range) return false;
 
-            // 3) Cono de visión: ángulo entre "adelante" y la dirección al jugador (en el plano horizontal)
+            
             Vector3 flatDirection = Vector3.ProjectOnPlane(toTarget, Vector3.up);
             if (Vector3.Angle(transform.forward, flatDirection) > viewAngle * 0.5f) return false;
         }
 
-        // 4) Raycast: lo primero que golpea el rayo tiene que ser el jugador (si es una pared, no lo ve)
         if (Physics.Raycast(eye, toTarget / distance, out RaycastHit hit, distance + 0.5f,
                             visionMask, QueryTriggerInteraction.Ignore))
         {
@@ -184,6 +180,7 @@ public class Enemy : MonoBehaviour
 
         if (waiting)
         {
+            transform.rotation = Quaternion.Slerp(transform.rotation, waypoints[waypointIndex].rotation, Time.deltaTime * 5f);
             waitTimer += Time.deltaTime;
             if (waitTimer >= waypointWaitTime)
             {
@@ -229,7 +226,7 @@ public class Enemy : MonoBehaviour
     {
         if (!canSeePlayer)
         {
-            StartSearch(); // Te perdió de vista
+            StartSearch(); 
             return;
         }
 
@@ -251,7 +248,18 @@ public class Enemy : MonoBehaviour
         if (Vector3.Distance(transform.position, player.transform.position) > attackRange) return;
 
         nextAttackTime = Time.time + attackCooldown;
-        player.TakeDamage(attackDamage); // IDamageable del PDF
+        player.TakeDamage(attackDamage);
+
+        if (attackCount == 0)
+        {
+            animator.SetTrigger(JumpAttackParam);
+            attackCount++;
+        }
+        else
+        {
+            animator.SetTrigger(Attack2Param);
+            attackCount = 0; 
+        }
     }
 
     private void OnAlarmTriggered()
@@ -272,7 +280,7 @@ public class Enemy : MonoBehaviour
         arrivedAtLastKnown = false;
         searchTimer = 0f;
 
-        // Última posición donde te vio (ajustada al NavMesh)
+        
         if (NavMesh.SamplePosition(lastKnownPosition, out NavMeshHit navHit, 2f, NavMesh.AllAreas))
             lastKnownPosition = navHit.position;
 
@@ -281,7 +289,7 @@ public class Enemy : MonoBehaviour
 
     private void UpdateSearch()
     {
-        if (canSeePlayer) { StartChase(); return; } // Te volvió a ver
+        if (canSeePlayer) { StartChase(); return; } 
 
         if (!arrivedAtLastKnown)
         {
@@ -289,12 +297,12 @@ public class Enemy : MonoBehaviour
             {
                 arrivedAtLastKnown = true;
                 searchTimer = 0f;
-                agent.isStopped = true; // Se frena a revisar la zona
+                agent.isStopped = true; 
             }
             return;
         }
 
-        // Llegó: mira alrededor durante searchDuration segundos
+        
         searchTimer += Time.deltaTime;
         transform.Rotate(0f, searchTurnSpeed * Time.deltaTime, 0f);
 
@@ -306,7 +314,7 @@ public class Enemy : MonoBehaviour
     private void UpdateAnimation()
     {
         if (animator == null) return;
-        // El Blend Tree usa "Speed": 0 = idle, ~patrolSpeed = caminar, ~chaseSpeed = correr
+        
         animator.SetFloat(SpeedParam, agent.velocity.magnitude, 0.1f, Time.deltaTime);
     }
     #endregion

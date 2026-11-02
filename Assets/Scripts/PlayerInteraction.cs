@@ -59,9 +59,9 @@ public class PlayerInteraction : MonoBehaviour
         currentInteractable = null;
         Transform cam = playerCamera.transform;
 
-        if (Physics.Raycast(cam.position, cam.forward, out RaycastHit hit,
-                            interactDistance, interactMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(cam.position, cam.forward, out RaycastHit hit, interactDistance, interactMask, QueryTriggerInteraction.Ignore))
         {
+            Debug.Log(hit.collider.name);
             currentInteractable = hit.collider.GetComponentInParent<IInteractable>();
         }
 

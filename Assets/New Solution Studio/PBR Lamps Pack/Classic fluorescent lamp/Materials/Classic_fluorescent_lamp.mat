@@ -13,14 +13,13 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _EMISSION
-  - _ENVIRONMENTREFLECTIONS_OFF
   - _METALLICSPECGLOSSMAP
   - _NORMALMAP
   - _OCCLUSIONMAP
   - _SPECGLOSSMAP
   - _SPECULAR_SETUP
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -104,7 +103,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _EnvironmentReflections: 0
+    - _EnvironmentReflections: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -125,13 +124,13 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.01886791, g: 0.018333912, b: 0.018333912, a: 1}
-    - _Color: {r: 0.01886791, g: 0.018333912, b: 0.018333912, a: 1}
-    - _EmissionColor: {r: 379.8555, g: 33.537006, b: 7.8837852, a: 1}
+    - _BaseColor: {r: 0.07924521, g: 0.06504088, b: 0.06504088, a: 1}
+    - _Color: {r: 0.07924519, g: 0.06504086, b: 0.06504086, a: 1}
+    - _EmissionColor: {r: 13.928808, g: 0.13398181, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &5239191795408374817
+--- !u!114 &1449165081004941886
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

@@ -2,32 +2,27 @@ using UnityEngine;
 
 public enum DoorLockType
 {
-    None,     // Libre: se abre directo
-    Key,      // Requiere una llave concreta (requiredKeyId)
-    AllKeys,  // Requiere todas las llaves del GameManager (puerta final)
-    Puzzle    // Requiere que un puzzle esté resuelto (requiredPuzzleId): teclado, palanca, etc.
+    None,     
+    Key,      
+    AllKeys,  
+    Puzzle    
 }
-
-/// <summary>
-/// Va en un pivote ubicado en la bisagra; la malla de la puerta (con Collider) es hija.
-/// La puerta no sabe CÓMO se resuelve el bloqueo: solo consulta si se cumple la condición.
-/// </summary>
 public class Door : MonoBehaviour, IInteractable
 {
     [Header("Bloqueo")]
     [SerializeField] private DoorLockType lockType = DoorLockType.None;
-    [SerializeField] private string requiredKeyId = "llave_1";          // Para Key
-    [SerializeField] private bool consumeKey = false;                   // Para Key
-    [SerializeField] private string requiredPuzzleId = "codigo_sotano"; // Para Puzzle
+    [SerializeField] private string requiredKeyId = "llave_1";          
+    [SerializeField] private bool consumeKey = false;                   
+    [SerializeField] private string requiredPuzzleId = "codigo_sotano"; 
     [SerializeField] private string lockedMessage = "Está cerrada.";
 
     [Header("Puerta de escape")]
-    [SerializeField] private bool isExitDoor = false;   // Al abrirse, gana el jugador
+    [SerializeField] private bool isExitDoor = false;   
     [SerializeField] private float winDelay = 1.2f;
 
     [Header("Animación")]
     [SerializeField] private float openAngle = 90f;
-    [SerializeField] private float speed = 120f;        // Grados por segundo
+    [SerializeField] private float speed = 120f;        
 
     private bool isLocked;
     private bool isOpen;

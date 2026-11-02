@@ -2,11 +2,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Teclado numérico. Al ingresar el código correcto resuelve un puzzle en el GameManager,
-/// y cualquier Door con lockType = Puzzle y el mismo ID se puede abrir.
-/// Se interactúa con E, se escribe el código y Enter confirma. Esc cierra.
-/// </summary>
 public class Keypad : MonoBehaviour, IInteractable
 {
     [SerializeField] private string correctCode = "1234";

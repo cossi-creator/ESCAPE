@@ -6,11 +6,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>
-/// Singleton + Observer. Lleva la cuenta de llaves y puzzles, dispara la alarma al
-/// juntar la última llave y maneja la UI (llaves, objetivo, Game Over y Victoria).
-/// Otros scripts (Enemy, Door, KeyPickup...) se comunican con él mediante eventos.
-/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -20,27 +15,27 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Player player;
 
     [Header("UI")]
-    [SerializeField] private TMP_Text keysText;          // "Llaves: 0/3"
-    [SerializeField] private TMP_Text objectiveText;     // "Encontrá las 3 llaves"
+    [SerializeField] private TMP_Text keysText;         
+    [SerializeField] private TMP_Text objectiveText;     
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject victoryPanel;
-    [SerializeField] private float gameOverDelay = 1.5f; // Tiempo entre morir y mostrar el panel
+    [SerializeField] private float gameOverDelay = 1.5f; 
 
     [Header("Alarma (todo opcional)")]
-    [SerializeField] private AudioSource alarmSound;     // Con Loop activado
-    [SerializeField] private Image alarmFlash;           // Imagen roja a pantalla completa
-    [SerializeField] private Light[] alarmLights;        // Luces que pasan a rojo y pulsan
+    [SerializeField] private AudioSource alarmSound;    
+    [SerializeField] private Image alarmFlash;           
+    [SerializeField] private Light[] alarmLights;        
 
-    // ─── Estado ───
+  
     public int KeysCollected { get; private set; }
     public int TotalKeys => totalKeys;
     public bool HasAllKeys => KeysCollected >= totalKeys;
     public bool AlarmActive { get; private set; }
 
-    // ─── Eventos (Observer) ───
-    public event Action<int, int> KeysChanged;          // (recogidas, total)
+    
+    public event Action<int, int> KeysChanged;          
     public event Action AlarmTriggered;
-    public event Action<string, int> PuzzleSolved;      // (id, cantidad de puzzles resueltos)
+    public event Action<string, int> PuzzleSolved;      
     public event Action GameOver;
     public event Action Victory;
 
@@ -56,11 +51,11 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-        Time.timeScale = 1f; // Por si venimos de un Game Over
+        Time.timeScale = 1f; 
 
-        if (player == null) player = FindFirstObjectByType<Player>(); // Unity 2022: FindObjectOfType
+        if (player == null) player = FindFirstObjectByType<Player>(); 
 
-        KeysChanged += UpdateKeysText; // La UI es un observer más
+        KeysChanged += UpdateKeysText; 
 
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (victoryPanel != null) victoryPanel.SetActive(false);
@@ -102,7 +97,7 @@ public class GameManager : MonoBehaviour
             alarmLights[i].intensity = Mathf.Lerp(lightBaseIntensity[i] * 0.2f, lightBaseIntensity[i] * 1.2f, pulse);
     }
 
-    // ───────────────────────── Llaves y puzzles ─────────────────────────
+   
     public void CollectKey()
     {
         if (ended) return;
@@ -110,10 +105,10 @@ public class GameManager : MonoBehaviour
         KeysCollected = Mathf.Min(KeysCollected + 1, totalKeys);
         KeysChanged?.Invoke(KeysCollected, totalKeys);
 
-        if (HasAllKeys && !AlarmActive) TriggerAlarm(); // ¡Desafío final!
+        if (HasAllKeys && !AlarmActive) TriggerAlarm(); 
     }
 
-    /// <summary>Para cualquier otro puzzle: GameManager.Instance.SolvePuzzle("generador");</summary>
+   
     public void SolvePuzzle(string puzzleId)
     {
         if (solvedPuzzles.Add(puzzleId)) PuzzleSolved?.Invoke(puzzleId, solvedPuzzles.Count);
@@ -121,7 +116,7 @@ public class GameManager : MonoBehaviour
 
     public bool IsPuzzleSolved(string puzzleId) => solvedPuzzles.Contains(puzzleId);
 
-    // ───────────────────────── Alarma ─────────────────────────
+  
     private void TriggerAlarm()
     {
         AlarmActive = true;
@@ -131,10 +126,10 @@ public class GameManager : MonoBehaviour
         if (alarmFlash != null) alarmFlash.gameObject.SetActive(true);
         foreach (Light l in alarmLights) l.color = Color.red;
 
-        AlarmTriggered?.Invoke(); // Los enemigos escuchan esto
+        AlarmTriggered?.Invoke(); 
     }
 
-    // ───────────────────────── Fin del juego ─────────────────────────
+
     private void HandlePlayerDied() => EndGame(false, gameOverDelay);
 
     public void Win() => EndGame(true, 0f);
@@ -166,7 +161,7 @@ public class GameManager : MonoBehaviour
         if (panel != null) panel.SetActive(true);
     }
 
-    // Conectar a los botones de los paneles (OnClick)
+  
     public void RestartLevel()
     {
         Time.timeScale = 1f;
@@ -179,9 +174,13 @@ public class GameManager : MonoBehaviour
         Application.Quit();
     }
 
-    // ───────────────────────── UI ─────────────────────────
+    public void MainMenu()
+    {
+        RestartLevel();
+    }
     private void UpdateKeysText(int collected, int total)
     {
         if (keysText != null) keysText.text = $"Llaves: {collected}/{total}";
     }
+    
 }
